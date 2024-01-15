@@ -7,16 +7,18 @@ import tkinter.font as tkFont
 import sqlite3
 import re
 import bcrypt
-x = ''
-n = 0
+hidden_number= ''
+moves_amount = 0
 def create_user_table():
     connection = sqlite3.connect("users.db")
     cursor = connection.cursor()
     cursor.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT)")
     connection.commit()
     connection.close()
+
 def validate_data(data):
     return re.match("^[a-zA-Z0-9]+$", data) is not None
+
 def check_existing_username(username):
     connection = sqlite3.connect("users.db")
     cursor = connection.cursor()
@@ -24,6 +26,7 @@ def check_existing_username(username):
     result = cursor.fetchone()
     connection.close()
     return result is not None
+
 def register_user():
     username = entry_username.get()
     password = entry_password.get()
@@ -43,6 +46,7 @@ def register_user():
     connection.commit()
     connection.close()
     lbl_status.config(text="Регистрация прошла успешно")
+
 def login_user():
     username = entry_username.get()
     password = entry_password.get()
@@ -61,12 +65,13 @@ def login_user():
     user = cursor.fetchone()
     if user is not None and bcrypt.checkpw(password.encode(), user[1]):
         lbl_status.config(text="Вход выполнен успешно")
-        gama2()
+        game()
     else:
         lbl_status.config(text="Введены неверные данные")
     connection.close()
 
-def gama2():
+def game():
+
     def check_number(input_text):
         try:
             number = int(input_text)
@@ -74,66 +79,71 @@ def gama2():
                 msg.config(text="Число введено корректно")
                 return True
             else:
-                ent.delete(0, 'end')
+                UserNumber.delete(0, 'end')
                 msg.config(text="Число не подходит")
                 return False
         except ValueError:
-            ent.delete(0, 'end')
+            UserNumber.delete(0, 'end')
             msg.config(text="Введено некорректное значение")
+
     def check_unique_digits(number):
         digit_set = set()
         while number > 0:
             digit = number % 10
             if digit in digit_set:
-                ent.delete(0, 'end')
+                UserNumber.delete(0, 'end')
                 msg.config(text="Цифры не должны повторяться")
                 return False
             digit_set.add(digit)
             number //= 10
         return True
 
+    def number_generate():
+        NumbersList = '0123456789'
+        secret_number = choice(NumbersList[1:10])
+        for i in range(3):
+            NumbersList = ''.join(NumbersList.split(secret_number[i]))
+            secret_number += choice(NumbersList)
+        return secret_number
+
     def play(event):
-        global x, n
-        if len(x) == 0:
-            z = '0123456789'
-            x = choice(z[1:10])
-            for i in range(3):
-                z = ''.join(z.split(x[i]))
-                x += choice(z)
+        global hidden_number, moves_amount
+        if len(hidden_number) == 0:
+            hidden_number = number_generate()
             txt_field.configure(state=NORMAL)
             txt_field.delete("1.0", "end")
             txt_field.configure(state=DISABLED)
-        y = ent.get()
-        check = check_number(y)
-        int_y = int(y)
+        guess_number = UserNumber.get()
+        check = check_number(guess_number)
+        int_GN = int(guess_number)
         if (check == True):
-            check1 = check_unique_digits(int_y)
+            check1 = check_unique_digits(int_GN)
             if (check1 == True):
-                b = 0
-                c = 0
+                bulls = 0
+                cows = 0
                 for i in range(4):
-                    if x[i] == y[i]:
-                        b += 1
-                    elif y[i] in x:
-                        c += 1
-                n += 1
+                    if hidden_number[i] == guess_number[i]:
+                        bulls += 1
+                    elif guess_number[i] in hidden_number:
+                        cows += 1
+                moves_amount += 1
                 txt_field.configure(state=NORMAL)
                 txt_field.tag_configure("center", justify='center')
                 txt_field.insert(END,
-                                 str(n) + ". Ваше число: " + y + ". Быков: " + str(b) + ". Коров: " + str(c) + ".\n")
+                                 str(moves_amount) + ". Ваше число: " + guess_number + ". Быков: " + str(bulls) + ". Коров: " + str(cows) + ".\n")
                 txt_field.tag_add("center", "1.0", "end")
                 txt_field.see("end")
                 txt_field.configure(state=DISABLED)
-                ent.delete(0, END)
-                if b == 4:
-                    gameOwer = Dialog(title='Победа за ' + str(n) + ' ходов.',
+                UserNumber.delete(0, END)
+                if bulls == 4:
+                    gameOver = Dialog(title='Победа за ' + str(moves_amount) + ' ходов.',
                                       text='     Сыграем ещё?           ',
                                       bitmap='questhead',
                                       default=0,
                                       strings=('Да', 'Нет'))
-                    if gameOwer.num == 1: tkgame.destroy()
-                    n = 0
-                    x = ''
+                    if gameOver.num == 1: tkgame.destroy()
+                    moves_amount = 0
+                    hidden_number = ''
                     txt_field.configure(state=NORMAL)
                     txt_field.delete("1.0", "end")
                     txt_field.tag_configure("left", justify='left')
@@ -163,10 +173,10 @@ def gama2():
     msg.pack(padx=10, pady=5)
     msg.config(bg='light grey', fg='black',
                font=('times', 12, 'italic'))
-    ent = Entry(width=8, justify='center', font=('times', 11, 'normal'))
-    ent.pack()
-    ent.focus()
-    ent.bind('<Return>', play)
+    UserNumber = Entry(width=8, justify='center', font=('times', 11, 'normal'))
+    UserNumber.pack()
+    UserNumber.focus()
+    UserNumber.bind('<Return>', play)
     txt_field = Text(tkgame, height=200, width=400, pady=10, font=('times', 12, 'normal'))
     txt_field.insert(END,
                      "Правила игры:\n1.Системой загадано некое 4-ёхзначеное число.\n2.Вам нужно вводить свои числа в поле\nвыше и с помощью подсказок найти ответ.\n3.Количество быков - это количество цифр, которые\nнаходятся на своём месте в числе.\n4.Количество коров - это количество цифр, которые\nесть в числе, но на другой позиции.")

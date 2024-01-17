@@ -7,6 +7,8 @@ import tkinter.font as tkFont
 import sqlite3
 import re
 import bcrypt
+from tkinter import messagebox
+
 hidden_number= ''
 moves_amount = 0
 def create_user_table():
@@ -19,6 +21,9 @@ def create_user_table():
 def validate_data(data):
     return re.match("^[a-zA-Z0-9]+$", data) is not None
 
+def is_valid_length(data):
+    return len(data) > 4
+
 def check_existing_username(username):
     connection = sqlite3.connect("users.db")
     cursor = connection.cursor()
@@ -28,25 +33,62 @@ def check_existing_username(username):
     return result is not None
 
 def register_user():
-    username = entry_username.get()
-    password = entry_password.get()
-    if not validate_data(username):
-        lbl_status.config(text="Используйте только английские буквы и цифры\nбез пробелов.")
-        return
-    if not validate_data(password):
-        lbl_status.config(text="Используйте только английские буквы и цифры\nбез пробелов.")
-        return
-    if check_existing_username(username):
-        lbl_status.config(text="Пользователь с таким логином уже существует.")
-        return
-    hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-    connection = sqlite3.connect("users.db")
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO users VALUES (?, ?)", (username, hashed_password))
-    connection.commit()
-    connection.close()
-    lbl_status.config(text="Регистрация прошла успешно")
 
+    def process_registration():
+        username = entry_username.get()
+        password = entry_password.get()
+        confirm_password = entry_confirm_password.get()
+
+        if not validate_data(username) or not validate_data(password):
+            messagebox.showerror("Ошибка", "Используйте только английские буквы и цифры без пробелов.")
+            return
+
+        if not is_valid_length(username) or not is_valid_length(password):
+            messagebox.showerror("Ошибка", "Логин и пароль должны быть длиннее 4 символов.")
+            return
+
+        if password != confirm_password:
+            messagebox.showerror("Ошибка", "Пароли не совпадают. Попробуйте еще раз.")
+            return
+
+        if check_existing_username(username):
+            messagebox.showerror("Ошибка", "Пользователь с таким логином уже существует.")
+            return
+
+        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+        connection = sqlite3.connect("users.db")
+        cursor = connection.cursor()
+        cursor.execute("INSERT INTO users VALUES (?, ?)", (username, hashed_password))
+        connection.commit()
+        connection.close()
+        messagebox.showinfo("Регистрация", "Регистрация прошла успешно!")
+        registration_window.destroy()
+
+
+    registration_window = tk.Toplevel(window_login)
+    registration_window.resizable(False, False)
+    registration_window.title("Регистрация пользователя")
+    width1 = 300
+    height1 = 200
+    screen_width1 = registration_window.winfo_screenwidth()
+    screen_height1 = registration_window.winfo_screenheight()
+    x_coord1 = (screen_width1 / 2) - (width1 / 2)
+    y_coord1 = (screen_height1 / 2) - (height1 / 2)
+    registration_window.geometry('%dx%d+%d+%d' % (width1, height1, x_coord1, y_coord1))
+
+    tk.Label(registration_window, text="Имя пользователя:").pack()
+    entry_username = tk.Entry(registration_window)
+    entry_username.pack()
+
+    tk.Label(registration_window, text="Пароль:").pack()
+    entry_password = tk.Entry(registration_window, show="*")
+    entry_password.pack()
+
+    tk.Label(registration_window, text="Подтвердите пароль:").pack()
+    entry_confirm_password = tk.Entry(registration_window, show="*")
+    entry_confirm_password.pack()
+
+    tk.Button(registration_window, text="Зарегистрироваться", command=process_registration).pack()
 def login_user():
     username = entry_username.get()
     password = entry_password.get()
@@ -55,6 +97,9 @@ def login_user():
         return
     if not validate_data(password):
         lbl_status.config(text="Используйте только английские буквы и цифры\nбез пробелов.")
+        return
+    if not is_valid_length(username) or not is_valid_length(password):
+        lbl_status.config(text="Логин и пароль должны быть длиннее 4 символов.")
         return
     if not check_existing_username(username):
         lbl_status.config(text="Пользователя с таким логином не существует.")
@@ -69,7 +114,6 @@ def login_user():
     else:
         lbl_status.config(text="Введены неверные данные")
     connection.close()
-
 def game():
 
     def check_number(input_text):
@@ -189,7 +233,7 @@ def game():
 if __name__ == "__main__":
     create_user_table()
     window_login = Tk()
-    window_login.title("Регистрация и авторизация")
+    window_login.title("Авторизация")
     window_login.resizable(False, False)
     font_style = tkFont.Font(family="Arial", size=12)
     bg_color = '#e6e6e6'
@@ -218,13 +262,3 @@ if __name__ == "__main__":
     lbl_status = Label(window_login, text="", bg=bg_color, fg=label_color, font=font_style)
     lbl_status.pack(padx=20, pady=10)
     window_login.mainloop()
-
-
-
-
-
-
-
-
-
-

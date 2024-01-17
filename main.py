@@ -24,6 +24,11 @@ def validate_data(data):
 def is_valid_length(data):
     return len(data) > 4
 
+def is_field_empty(data):
+    if not data:
+        return True
+    return False
+
 def check_existing_username(username):
     connection = sqlite3.connect("users.db")
     cursor = connection.cursor()
@@ -32,11 +37,15 @@ def check_existing_username(username):
     connection.close()
     return result is not None
 
-def register_user():
+def register_user(window_login):
     def process_registration():
         username = entry_username.get()
         password = entry_password.get()
         confirm_password = entry_confirm_password.get()
+
+        if is_field_empty(username) or is_field_empty(password):
+            messagebox.showerror("Ошибка", "Поле не может быть пустым.")
+            return
 
         if not validate_data(username) or not validate_data(password):
             messagebox.showerror("Ошибка", "Используйте только английские буквы и цифры без пробелов.")
@@ -91,15 +100,18 @@ def register_user():
 def login_user():
     username = entry_username.get()
     password = entry_password.get()
-    if not validate_data(username):
+    if is_field_empty(username) or is_field_empty(password):
+        lbl_status.config(text="Поле не может быть пустым.")
+        return
+
+    if not validate_data(username) or not validate_data(password):
         lbl_status.config(text="Используйте только английские буквы и цифры\nбез пробелов.")
         return
-    if not validate_data(password):
-        lbl_status.config(text="Используйте только английские буквы и цифры\nбез пробелов.")
-        return 
+
     if not is_valid_length(username) or not is_valid_length(password):
         lbl_status.config(text="Логин и пароль должны быть длиннее 4 символов.")
         return
+
     if not check_existing_username(username):
         lbl_status.config(text="Пользователя с таким логином не существует.")
         return
@@ -113,33 +125,33 @@ def login_user():
     else:
         lbl_status.config(text="Введены неверные данные")
     connection.close()
-def game():
 
-    def check_number(input_text):
-        try:
-            number = int(input_text)
-            if number >= 1023 and number <= 9876:
-                msg.config(text="Число введено корректно")
-                return True
-            else:
-                UserNumber.delete(0, 'end')
-                msg.config(text="Число не подходит")
-                return False
-        except ValueError:
+def check_number(input_text, UserNumber, msg):
+    try:
+        number = int(input_text)
+        if number >= 1023 and number <= 9876:
+            msg.config(text="Число введено корректно")
+            return True
+        else:
             UserNumber.delete(0, 'end')
-            msg.config(text="Введено некорректное значение")
+            msg.config(text="Число не подходит")
+            return False
+    except ValueError:
+        UserNumber.delete(0, 'end')
+        msg.config(text="Введено некорректное значение")
 
-    def check_unique_digits(number):
-        digit_set = set()
-        while number > 0:
-            digit = number % 10
-            if digit in digit_set:
-                UserNumber.delete(0, 'end')
-                msg.config(text="Цифры не должны повторяться")
-                return False
-            digit_set.add(digit)
-            number //= 10
-        return True
+def check_unique_digits(number, UserNumber, msg):
+    digit_set = set()
+    while number > 0:
+        digit = number % 10
+        if digit in digit_set:
+            UserNumber.delete(0, 'end')
+            msg.config(text="Цифры не должны повторяться")
+            return False
+        digit_set.add(digit)
+        number //= 10
+    return True
+def game():
 
     def number_generate():
         NumbersList = '0123456789'
@@ -157,10 +169,16 @@ def game():
             txt_field.delete("1.0", "end")
             txt_field.configure(state=DISABLED)
         guess_number = UserNumber.get()
-        check = check_number(guess_number)
+        try:
+            int_GN = int(guess_number)
+        except ValueError:
+            UserNumber.delete(0, 'end')
+            msg.config(text="Введено некорректное значение")
+            return
+        check = check_number(guess_number, UserNumber, msg)
         int_GN = int(guess_number)
         if (check == True):
-            check1 = check_unique_digits(int_GN)
+            check1 = check_unique_digits(int_GN, UserNumber, msg)
             if (check1 == True):
                 bulls = 0
                 cows = 0
@@ -251,7 +269,8 @@ if __name__ == "__main__":
     lbl_password.pack(padx=20, pady=10)
     entry_password = Entry(window_login, show="*", font=font_style)
     entry_password.pack(padx=20, pady=5)
-    btn_register = Button(window_login, text="Зарегистрироваться", command=register_user, bg=button_color,
+    btn_register = Button(window_login, text="Зарегистрироваться", command=lambda: register_user(window_login),
+                          bg=button_color,
                           font=font_style, fg='white')
     btn_register.pack(padx=20, pady=10)
     btn_login = Button(window_login, text="Войти", command=login_user, bg=button_color, font=font_style, fg='white')

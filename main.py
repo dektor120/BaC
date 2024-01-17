@@ -33,7 +33,6 @@ def check_existing_username(username):
     return result is not None
 
 def register_user():
-
     def process_registration():
         username = entry_username.get()
         password = entry_password.get()
@@ -66,7 +65,7 @@ def register_user():
 
     registration_window = tk.Toplevel(window_login)
     registration_window.resizable(False, False)
-    registration_window.title("Регистрация пользователя")
+    registration_window.title("Регистрация")
     width1 = 300
     height1 = 200
     screen_width1 = registration_window.winfo_screenwidth()
@@ -97,7 +96,7 @@ def login_user():
         return
     if not validate_data(password):
         lbl_status.config(text="Используйте только английские буквы и цифры\nбез пробелов.")
-        return
+        return 
     if not is_valid_length(username) or not is_valid_length(password):
         lbl_status.config(text="Логин и пароль должны быть длиннее 4 символов.")
         return

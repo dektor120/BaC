@@ -64,7 +64,6 @@ def register_user():
         messagebox.showinfo("Регистрация", "Регистрация прошла успешно!")
         registration_window.destroy()
 
-
     registration_window = tk.Toplevel(window_login)
     registration_window.resizable(False, False)
     registration_window.title("Регистрация пользователя")
@@ -89,6 +88,7 @@ def register_user():
     entry_confirm_password.pack()
 
     tk.Button(registration_window, text="Зарегистрироваться", command=process_registration).pack()
+
 def login_user():
     username = entry_username.get()
     password = entry_password.get()
@@ -197,7 +197,6 @@ def game():
                     msg.config(text='Введите число от 1023 до 9876 '
                                     'такое, чтобы цифры, составляющие это число,'
                                     ' не повторялись!')
-
     window_login.destroy()
     tkgame = Tk()
     tkgame.resizable(False, False)
@@ -228,7 +227,6 @@ def game():
     txt_field.configure(state=DISABLED)
     txt_field.pack()
     tk.mainloop()
-
 
 if __name__ == "__main__":
     create_user_table()

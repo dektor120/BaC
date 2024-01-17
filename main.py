@@ -1,13 +1,12 @@
 from tkinter import *
 from tkinter.dialog import *
-from tkinter import Tk , Text
-from random import choice
+from tkinter import Tk , Text,  messagebox
 import tkinter as tk
 import tkinter.font as tkFont
+from random import choice
 import sqlite3
 import re
 import bcrypt
-from tkinter import messagebox
 
 hidden_number= ''
 moves_amount = 0
@@ -44,7 +43,7 @@ def register_user(window_login):
         confirm_password = entry_confirm_password.get()
 
         if is_field_empty(username) or is_field_empty(password):
-            messagebox.showerror("Ошибка", "Поле не может быть пустым.")
+            messagebox.showerror("Ошибка", "Необходимо заполнить все поля")
             return
 
         if not validate_data(username) or not validate_data(password):
@@ -101,7 +100,7 @@ def login_user():
     username = entry_username.get()
     password = entry_password.get()
     if is_field_empty(username) or is_field_empty(password):
-        lbl_status.config(text="Поле не может быть пустым.")
+        lbl_status.config(text="Необходимо заполнить все поля")
         return
 
     if not validate_data(username) or not validate_data(password):

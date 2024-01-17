@@ -1,11 +1,7 @@
 import unittest
-from tkinter import Entry, Message, Tk, Label, Button
-import tkinter.font as tkFont
-from unittest.mock import patch
+from tkinter import Entry, Message
 from tkinter import Tk
-from unittest.mock import patch, MagicMock
 from main import validate_data, is_valid_length, check_existing_username, check_number, check_unique_digits, create_user_table, register_user
-from main import login_user, game  # Добавьте эти импорты
 
 class TestValidateData(unittest.TestCase):
     def test_valid_data(self):
@@ -43,7 +39,6 @@ class TestRegistrationFunctions(unittest.TestCase):
         self.assertFalse(check_existing_username("ValidUser"))
 
         window_login.destroy()
-
 
 class TestGameFunctions(unittest.TestCase):
     UserNumber = None
